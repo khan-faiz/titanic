@@ -77,7 +77,13 @@ object SimpleApp {
     val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
    spark.sparkContext.setLogLevel("OFF")
     //val inputfile = sc.textFile("/home/faiz/Projects/Kaggle/Titanic/titanic/test.csv")
-    val inputfile = spark.read.format("csv").option("sep",",").option("inferSchema","true").option("header","true").load("/Users/patrickmadden/src/patrick/titanic/train.csv")
+    val inputfile = spark
+      .read
+      .format("csv")
+      .option("sep",",")
+      .option("inferSchema","true")
+      .option("header","true")
+      .load("src/main/resources/train.csv")
     inputfile.printSchema()
 
     inputfile.filter( inputfile("Survived") === "1").show()
