@@ -65,4 +65,105 @@ inputfile.take(5)(0).getAs[Int]("Survived")
 inputfile.take(5)(0).getAs[String]("Name")
 inputfile.take(5)(0).getAs("Name")
 inputfile.filter( x => x.getAs[Int]("Survived") == 1 ).show()
-inputfile.filter( x => x( x.fieldIndex("Survived") ) == 1 ).show()*/
+inputfile.filter( x => x( x.fieldIndex("Survived") ) == 1 ).show()
+
+:history
+:help history
+:history 100
+
+inputfile.filter( x => x( x.fieldIndex("Survived") ) == 1 ).show()
+inputfile.filter( x => x( x.fieldIndex("Survived") ) == 1 ).count()
+inputfile.count()
+inputfile.filter( x=? x( x.fieldIndex("Age") ) == null ) 
+inputfile.filter( x=> x( x.fieldIndex("Age") ) == null ) 
+inputfile.filter( x=> x( x.fieldIndex("Age") ) == null ).count()
+inputfile.filter( x=> x( x.fieldIndex("Cabin") ) == null ).count()
+177/891
+Long(2)
+177:Long / 2
+177:Float / 2
+3f
+177f/891
+687f/891
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Sex") ) == "male").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Sex") ) == "male")
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Sex") ) == "male").show()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Sex") ) == "male").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Sex") ) == "female").count()
+inputfile.count()
+109f/891
+233f/891
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) == "null").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) == null).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1).count()
+52f/243
+52f/342
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) <= 18).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) =< 18).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) < 18).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) < 18f).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) > 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ) == 0).count()
+inputfile.printSchema()
+inputfile(3)
+inputfile.take(5)(3)("Age")
+inputfile.take(5)(3)(5)
+inputfile.take(5)(3)(6)
+inputfile.take(5)(3)(4)
+inputfile.take(5)(3)(6)
+inputfile.take(5)(3)(5))_
+inputfile.take(5)(3)(5)()
+inputfile.take(5)(3)(5)
+val a = inputfile.take(5)(3)(5)
+a
+val a:Float = inputfile.take(5)(3)(5)
+val a:Double = inputfile.take(5)(3)(5)
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Double ) == 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Double ) == 0f).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Double ) == 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Int ) == 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Int ) <= 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age"):Int ) <= 0:Int).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Int <= 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Int <= 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double <= 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double == 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double == 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double === 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double > 0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ):Double > 0.0).count()
+inputfile.filter( inputfile("Survived") == "1").show()
+inputfile.take(5)(3)(5)
+inputfile.take(5)(3)(5):Double
+5:Int
+inputfile.take(5)(3)(5)
+val a:Double = inputfile.take(5)(3)(5)
+val a = inputfile.take(5)(3)(5)
+a:Double
+val a = 5:Double
+a
+val a = inputfile.take(5)(3)(5).asInstanceOf(Double)
+val a = inputfile.take(5)(3)(5).asInstanceOf[Double]
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ).asInstanceOf[Double] > 0.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 ).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ).asInstanceOf[Double] <= 18).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Age") ).asInstanceOf[Double] >= 18).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "S").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "B").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "C").count()
+inputfile.select(inputfile("Embarked")).distinct()
+inputfile.select(inputfile("Embarked")).distinct().show()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "Q").count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Embarked") ).asInstanceOf[String] == null).count()
+inputfile.select(inputfile("Fare")).distinct().show()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Fare") ).asInstanceOf[Double] >= 10.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) == 1 && x( x.fieldIndex("Fare") ).asInstanceOf[Double] <= 10.0).count()
+inputfile.filter( x=> x( x.fieldIndex("Survived") ) => 0 && x( x.fieldIndex("Fare") ).asInstanceOf[Double] >= 10.0).count()
+inputfile.filter( x => x( x.fieldIndex("Fare") ).asInstanceOf[Double] >= 10.0).count()
+inputfile.filter( x => x( x.fieldIndex("Fare") ).asInstanceOf[Double] <= 10.0).count()
+inputfile.filter( x=>  x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "S").count()
+inputfile.filter( x=>  x( x.fieldIndex("Embarked") ).asInstanceOf[String] == "C").count()
+:history 100
+:history 300
+
+
