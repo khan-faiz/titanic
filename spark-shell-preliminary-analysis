@@ -66,4 +66,3 @@ inputfile.take(5)(0).getAs[String]("Name")
 inputfile.take(5)(0).getAs("Name")
 inputfile.filter( x => x.getAs[Int]("Survived") == 1 ).show()
 inputfile.filter( x => x( x.fieldIndex("Survived") ) == 1 ).show()*/
-
