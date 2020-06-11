@@ -3,11 +3,12 @@ import org.apache.spark.mllib.classification.{SVMModel,SVMWithSGD}
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.util.MLUtils
 
+
 object Titanic {
+
   def main(args: Array[String]) {
     val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
-   spark.sparkContext.setLogLevel("OFF")
-    //val inputfile = sc.textFile("/home/faiz/Projects/Kaggle/Titanic/titanic/test.csv")
+    spark.sparkContext.setLogLevel("OFF")
     val inputfile = spark
       .read
       .format("csv")
@@ -19,49 +20,53 @@ object Titanic {
 
     println(inputfile.getClass)
     basicAnalysis(inputfile)
-
   }
+
   def basicAnalysis(inputfile: org.apache.spark.sql.DataFrame) {
     inputfile.filter( inputfile("Survived") === "1").show()
 
     val totalrecords = inputfile.count()
+    def nullPercent(title: String, x: Long) =
+      s"$title: Found $x null entries, $totalrecords total entries, ${ 100*x.toFloat/totalrecords }% null"
 
+    // Why is this var ಠ_ಠ
     var row = inputfile.take(5)(3)
 
     val nPID = nullChecks( inputfile, row.fieldIndex("PassengerId") )
-    println(s"PID: Found $nPID null entries, $totalrecords total entries, ${ 100*nPID.toFloat/totalrecords }% null")
+    println(nullPercent("PID", nPID))
 
     val nPclass = nullChecks( inputfile, row.fieldIndex("Pclass") )
-    println(s"Pclass: Found $nPclass null entries, $totalrecords total entries, ${ 100*nPclass.toFloat/totalrecords }% null")
-  
+    println(nullPercent("PClass", nPclass))
+
     val nName = nullChecks( inputfile, row.fieldIndex("Name") )
-    println(s"Name: Found $nName null entries, $totalrecords total entries, ${ 100*nName.toFloat/totalrecords }% null")
+    println(nullPercent("Name", nName))
 
     val nSex = nullChecks( inputfile, row.fieldIndex("Sex") ) //ಠ_ಠ
-    println(s"Sex: Found $nSex null entries, $totalrecords total entries, ${ 100*nSex.toFloat/totalrecords }% null")
+    println(nullPercent("Sex", nSex))
 
     val nAges = nullChecks( inputfile, row.fieldIndex("Age") )
-    println(s"Ages: Found $nAges null entries, $totalrecords total entries, ${ 100*nAges.toFloat/totalrecords }% null")
+    println(nullPercent("Age", nAges))
 
     val nSib = nullChecks( inputfile, row.fieldIndex("SibSp") )
-    println(s"Siblings: Found $nSib null entries, $totalrecords total entries, ${ 100*nSib.toFloat/totalrecords }% null")
+    println(nullPercent("Siblings", nSib))
 
     val nParch = nullChecks( inputfile, row.fieldIndex("Parch") )
-    println(s"Parchment: Found $nParch null entries, $totalrecords total entries, ${ 100*nParch.toFloat/totalrecords }% null")
+    println(nullPercent("Parchment", nParch))
 
     val nTick = nullChecks( inputfile, row.fieldIndex("Ticket") )
-    println(s"Ticket: Found $nTick null entries, $totalrecords total entries, ${ 100*nTick.toFloat/totalrecords }% null")
+    println(nullPercent("Ticket", nTick))
 
     val nFare = nullChecks( inputfile, row.fieldIndex("Fare") )
-    println(s"Fare: Found $nFare null entries, $totalrecords total entries, ${ 100*nFare.toFloat/totalrecords }% null")
+    println(nullPercent("Fare", nFare))
 
     val nCabin = nullChecks( inputfile, row.fieldIndex("Cabin") )
-    println(s"Cabin: Found $nCabin null entries, $totalrecords total entries, ${ 100*nCabin.toFloat/totalrecords }% null")
+    println(nullPercent("Cabin", nCabin))
 
     val nEmb = nullChecks( inputfile, row.fieldIndex("Embarked") )
-    println(s"Embarked: Found $nEmb null entries, $totalrecords total entries, ${ 100*nEmb.toFloat/totalrecords }% null")
+    println(nullPercent("Embarked", nEmb))
 
   }
+
   def nullChecks(df: org.apache.spark.sql.DataFrame, index: Int) : Long = {
     df.filter( x => x( index ) == null ).count()
   }
