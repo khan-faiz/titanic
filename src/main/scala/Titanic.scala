@@ -1,9 +1,11 @@
+import scala.collection.JavaConverters._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.mllib.classification.{SVMModel,SVMWithSGD}
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.linalg.{Vector,Vectors}
+import org.apache.spark.sql.{Row, Encoders, Encoder}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
@@ -30,30 +32,64 @@ object Titanic {
 
     println(input.getClass)
     basicAnalysis(input)
-    val transformed = inputMassage(input)
+
+    /* Scala has no problem handling this, its only when trying to map complex types back to DataFrame/Datasets aka spark
+       Spark's map method is experimental 
+    val listtest = List(1,2,3,4).map( x=> (x, (x+1,x+2)))
+    println(listtest)
+    */
+
+
+    val inputlist = input.takeAsList( input.count().toInt ).asScala.toList
+    val itransform = inputlist.map( row => (1, Vectors.dense(1)) )
+    itransform.foreach(x => println(x))
+/*
+    import spark.implicits._
+    val a = Seq( (1,Vectors.dense(1)), (0, Vectors.dense(2) ) ).toDS()
+    a.show()
+    var massaged = Seq(1,Vectors.dense(9))
+    massaged :+ (2,Vectors.dense(10))
+    input.foreach( row => massaged :+ (1,Vectors.dense(1)) )
+
+
+    def createList( input: org.apache.spark.sql.DataFrame, sequence ) {
+       return sequence :+ createList( input
+       
+    }
+*/
+    //println(massaged.mkString(" "))
+    //massaged.toDS().show()
+    
+    val transformed = inputMassage(inputlist)
+    transformed.foreach(println)
     //val transformed = input.map( row => ( row( row.fieldIndex("Survived") ), 1 ) )
     //val transformed = input.map( row => ( 1 , 1 ) )
-    println(transformed)
-    transformed.show()
-    transformed.take(5).foreach(println)
+    //transformed.show()
+    //transformed.take(5).foreach(println)
+
+    /*val vectors = transformed.foreach { row => 
+      val features = row(1)
+      print(features)
+    }
+    println(vectors)  */
 
   }
-  def inputMassage(input: org.apache.spark.sql.DataFrame)(implicit spark: SparkSession) = {
-    import spark.implicits._
+  def inputMassage(input: List[org.apache.spark.sql.Row] ) = {
      //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")))
      //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")).getClass)
      //input.map( row => ( row( row.fieldIndex("Survived") ), row( row.fieldIndex("PassengerID") ) ) )
      //input.map( row => ( row( row.fieldIndex("Survived") ), Vectors.dense(1.0) ):(Int, Vector) )
-
-    val featureCols = input.columns.filter( col => col != "Survived").toSeq
-    println(featureCols.mkString(" "))
+    
     input.map { row =>
       val label = row.getInt(row.fieldIndex("Survived")) 
-      val features = row.getValuesMap( featureCols ).mkString(" ")
-      (label, features)
-    }
-  }
+      //val features = row.getValuesMap( featureCols ).mkString(" ")
+      //val features = row.getValuesMap( featureCols )
+      val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") ) ) 
 
+      (label, row.getValuesMap(featureCols) )
+    }
+
+  }
   def basicAnalysis(input: org.apache.spark.sql.DataFrame) {
     input.filter( input("Survived") === "1").show()
 
