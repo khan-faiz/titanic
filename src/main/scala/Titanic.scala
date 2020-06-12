@@ -17,8 +17,7 @@ object Titanic {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
 
-    val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
-    import spark.implicits._
+    implicit val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
     spark.sparkContext.setLogLevel("OFF")
     val input = spark
       .read
@@ -30,21 +29,27 @@ object Titanic {
     input.printSchema()
 
     println(input.getClass)
-    //basicAnalysis(input)
+    basicAnalysis(input)
     val transformed = inputMassage(input)
     //val transformed = input.map( row => ( row( row.fieldIndex("Survived") ), 1 ) )
     //val transformed = input.map( row => ( 1 , 1 ) )
     println(transformed)
-
+    transformed.show()
+    transformed.take(5).foreach(println)
 
   }
-  def inputMassage(input: org.apache.spark.sql.DataFrame) = {
+  def inputMassage(input: org.apache.spark.sql.DataFrame)(implicit spark: SparkSession) = {
+    import spark.implicits._
      //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")))
      //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")).getClass)
      //input.map( row => ( row( row.fieldIndex("Survived") ), row( row.fieldIndex("PassengerID") ) ) )
      //input.map( row => ( row( row.fieldIndex("Survived") ), Vectors.dense(1.0) ):(Int, Vector) )
-     input.map( row => ( 4, Vectors.dense(1.0) ):(Int, Vector) )
 
+    input.map { row =>
+      val label = row.getInt(row.fieldIndex("Survived")) 
+      val featureCols = row.schema.fieldNames.filter(_ != "Survived")
+      (label, row.getValuesMap(featureCols))
+    }
   }
 
   def basicAnalysis(input: org.apache.spark.sql.DataFrame) {
