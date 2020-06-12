@@ -45,13 +45,11 @@ object Titanic {
      //input.map( row => ( row( row.fieldIndex("Survived") ), row( row.fieldIndex("PassengerID") ) ) )
      //input.map( row => ( row( row.fieldIndex("Survived") ), Vectors.dense(1.0) ):(Int, Vector) )
 
-    /* broken shit 
     val featureCols = input.columns.filter( col => col != "Survived").toSeq
     println(featureCols.mkString(" "))
-    println(featureCols.getClass) */
     input.map { row =>
       val label = row.getInt(row.fieldIndex("Survived")) 
-      val features = row.getValuesMap( Seq("PassengerId", "Pclass", "Name", "Sex", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked" ) ).mkString(" ")
+      val features = row.getValuesMap( featureCols ).mkString(" ")
       (label, features)
     }
   }
