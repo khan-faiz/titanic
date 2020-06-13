@@ -34,16 +34,43 @@ object Titanic {
     basicAnalysis(input)
 
     val inputlist = input.takeAsList( input.count().toInt ).asScala.toList
-    
-    //println(massaged.mkString(" "))
-    //massaged.toDS().show()
-    
     val transformed = inputMassage(inputlist)
     val inputrdd = spark.sparkContext.parallelize(transformed,1)
-    inputrdd.take(4).foreach(println)
-    //val transformed2 = transformed.map( x=> (x._1, Vectors.dense(1) ) )
 
-    //t2.foreach(println)
+    inputrdd.take(4).foreach(println)
+
+    //everything below ripped from ml-pipeline tutorial
+    //check that for the full explaination
+    val inputdf = inputrdd.toDF("label", "features")
+    var lr = new LogisticRegression()
+    println(s"LogisticRegression params:\n ${lr.explainParams()}\n")
+    lr.setMaxIter(10).setRegParam(0.01)
+    var model1 = lr.fit(inputdf)
+    println(s"Model 1 was fit using parameters: ${model1.parent.extractParamMap}")
+    val paramMap = ParamMap(lr.maxIter -> 20)
+        .put(lr.maxIter, 30).put(lr.regParam -> 0.1, lr.threshold -> 0.55)
+    val paramMap2 = ParamMap(lr.probabilityCol -> "myProbability")
+    val paramMapCombined = paramMap ++ paramMap2
+   
+    val model2 = lr.fit(inputdf, paramMapCombined)
+     
+    //load test data
+    val testinput = spark
+      .read
+      .format("csv")
+      .option("sep",",")
+      .option("inferSchema","true")
+      .option("header","true")
+      .load("src/main/resources/test.csv")
+    testinput.printSchema()
+
+    basicAnalysis(testinput)
+
+    val testinputlist = testinput.takeAsList( testinput.count().toInt ).asScala.toList
+    val testtransformed = inputMassage(testinputlist)
+    val testinputrdd = spark.sparkContext.parallelize(testtransformed,1)
+
+    testinputrdd.take(4).foreach(println)
   }
   def inputMassage(input: List[org.apache.spark.sql.Row] ) = {
     
