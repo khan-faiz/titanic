@@ -33,60 +33,28 @@ object Titanic {
     println(input.getClass)
     basicAnalysis(input)
 
-    /* Scala has no problem handling this, its only when trying to map complex types back to DataFrame/Datasets aka spark
-       Spark's map method is experimental 
-    val listtest = List(1,2,3,4).map( x=> (x, (x+1,x+2)))
-    println(listtest)
-    */
-
-
     val inputlist = input.takeAsList( input.count().toInt ).asScala.toList
-    val itransform = inputlist.map( row => (1, Vectors.dense(1)) )
-    itransform.foreach(x => println(x))
-/*
-    import spark.implicits._
-    val a = Seq( (1,Vectors.dense(1)), (0, Vectors.dense(2) ) ).toDS()
-    a.show()
-    var massaged = Seq(1,Vectors.dense(9))
-    massaged :+ (2,Vectors.dense(10))
-    input.foreach( row => massaged :+ (1,Vectors.dense(1)) )
-
-
-    def createList( input: org.apache.spark.sql.DataFrame, sequence ) {
-       return sequence :+ createList( input
-       
-    }
-*/
+    
     //println(massaged.mkString(" "))
     //massaged.toDS().show()
     
     val transformed = inputMassage(inputlist)
-    transformed.foreach(println)
-    //val transformed = input.map( row => ( row( row.fieldIndex("Survived") ), 1 ) )
-    //val transformed = input.map( row => ( 1 , 1 ) )
-    //transformed.show()
-    //transformed.take(5).foreach(println)
+    val inputrdd = spark.sparkContext.parallelize(transformed,1)
+    inputrdd.take(4).foreach(println)
+    //val transformed2 = transformed.map( x=> (x._1, Vectors.dense(1) ) )
 
-    /*val vectors = transformed.foreach { row => 
-      val features = row(1)
-      print(features)
-    }
-    println(vectors)  */
-
+    //t2.foreach(println)
   }
   def inputMassage(input: List[org.apache.spark.sql.Row] ) = {
-     //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")))
-     //println(input.take(4)(2)( input.take(4)(2).fieldIndex("Survived")).getClass)
-     //input.map( row => ( row( row.fieldIndex("Survived") ), row( row.fieldIndex("PassengerID") ) ) )
-     //input.map( row => ( row( row.fieldIndex("Survived") ), Vectors.dense(1.0) ):(Int, Vector) )
     
     input.map { row =>
       val label = row.getInt(row.fieldIndex("Survived")) 
-      //val features = row.getValuesMap( featureCols ).mkString(" ")
-      //val features = row.getValuesMap( featureCols )
-      val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") ) ) 
-
+      val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") && (x != "Ticket") && (x != "Embarked") ) ) 
+      // need to properly handle embarked, age, and ticket at some point instead of throwing it away, TODO
       (label, row.getValuesMap(featureCols) )
+    }.map{ row => 
+        val sex = if (row._2("Sex") == "male") 1 else 2
+        (row._1, Vectors.dense( row._2("PassengerId"):Int, row._2("Pclass"):Int, row._2("SibSp"):Int, row._2("Parch"):Int,row._2("Fare") , sex ) ) 
     }
 
   }
