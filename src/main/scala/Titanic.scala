@@ -5,8 +5,9 @@ import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.linalg.{Vector,Vectors}
-import org.apache.spark.sql.{Row, Encoders, Encoder}
+import org.apache.spark.sql.{Row, Encoders, Encoder, DataFrame}
 import org.apache.spark.ml.param.ParamMap
+import org.apache.spark.rdd.RDD
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
@@ -52,9 +53,9 @@ object Titanic {
         .put(lr.maxIter, 30).put(lr.regParam -> 0.1, lr.threshold -> 0.55)
     val paramMap2 = ParamMap(lr.probabilityCol -> "myProbability")
     val paramMapCombined = paramMap ++ paramMap2
-   
+
     val model2 = lr.fit(inputdf, paramMapCombined)
-     
+
     //load test data
     val testinput = spark
       .read
@@ -75,35 +76,38 @@ object Titanic {
     val testinputdf = spark.createDataFrame(testtransformed).toDF("label", "features")
 
     //actual fitting
-    val results = model1.transform(testinputdf)
+    val results: DataFrame = model1.transform(testinputdf)
     results.select("features","probability","prediction").collect()
-    .foreach({ case Row(features: Vector, prob: Vector, prediction:Double) =>
-       println(s"($features) -> prob=$prob, prediction=$prediction")})
-    val testpids = results.select("features").collect().take(5).map( x=>x.apply(0))
-    testpids.foreach { x => 
+      .foreach { case Row(features: Vector, prob: Vector, prediction:Double) =>
+         println(s"($features) -> prob=$prob, prediction=$prediction")
+      }
+
+    val testpids: Array[Vector] = results.select("features").collect().take(5).map( x=>x.apply(0))
+    testpids.foreach { x =>
       println(x)
       println(x.getClass)
       println(x.toString)
-      println(x.toArray) } //why does this shit crash
+      // println(x.toArray)
+    } //why does this shit crash
 
   }
   def inputMassage(input: List[org.apache.spark.sql.Row], testdata: Int) = {
-    
+
       input.map { row =>
         val label = if( testdata == 0) row.getInt(row.fieldIndex("Survived")) else 0
-        val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") && (x != "Ticket") && (x != "Embarked") ) ) 
+        val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") && (x != "Ticket") && (x != "Embarked") ) )
         // need to properly handle embarked, age, and ticket at some point instead of throwing it away, TODO
         (label, row.getValuesMap(featureCols) )
-      }.map{ row => 
-        
+      }.map{ row =>
+
           val sex = if (row._2("Sex").toString == "male") 1 else 2
-          (row._1, Vectors.dense( row._2("PassengerId"):Int, row._2("Pclass"):Int, row._2("SibSp"):Int, row._2("Parch"):Int,row._2("Fare") , sex ) ) 
+          (row._1, Vectors.dense( row._2("PassengerId"):Int, row._2("Pclass"):Int, row._2("SibSp"):Int, row._2("Parch"):Int,row._2("Fare") , sex ) )
       }
 
   }
   def basicAnalysis(input: org.apache.spark.sql.DataFrame, testdata: Int) {
     if (testdata == 0)
-    	input.filter( input("Survived") === "1").show()
+      input.filter( input("Survived") === "1").show()
 
     val totalrecords = input.count()
 
@@ -112,7 +116,7 @@ object Titanic {
 
     var columns = input.columns
 
-    val nulls = input.columns.map( column => ( column, input.filter( row => row( columns.indexOf(column) ) == null ).count() ) ) 
+    val nulls = input.columns.map( column => ( column, input.filter( row => row( columns.indexOf(column) ) == null ).count() ) )
 
     val nullstrings = nulls.map( x  => nullPercent(x._1, x._2) )
     nullstrings.foreach( println )
