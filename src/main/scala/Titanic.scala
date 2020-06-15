@@ -78,13 +78,17 @@ object Titanic {
     val results = model1.transform(testinputdf)
     results.select("features","probability","prediction").collect()
     .foreach({ case Row(features: Vector, prob: Vector, prediction:Double) =>
-       println(s"($features) -> prob=$prob, prediction=$prediction")})
-    val testpids = results.select("features").collect().take(5).map( x=>x.apply(0))
-    testpids.foreach { x => 
-      println(x)
-      println(x.getClass)
-      println(x.toString)
-      println(x.toArray) } //why does this shit crash
+       println(s"($features) -> prob=$prob, prediction=$prediction")
+       println( features.apply(0)) 
+    })
+    val testpids = results.select("features","prediction").collect()
+    val testresults = testpids.map{ x => 
+      (x.apply(0).asInstanceOf[Vector].apply(0).floor.toInt, x.apply(1).asInstanceOf[Double].floor.toInt)
+    } 
+
+    val testresultsdf = spark.createDataFrame(testresults).toDF("label", "features")
+    testresultsdf.foreach(x => println(x) )
+    testresultsdf.coalesce(1).write.format("csv").save("./results.csv")
 
   }
   def inputMassage(input: List[org.apache.spark.sql.Row], testdata: Int) = {
