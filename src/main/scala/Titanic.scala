@@ -36,25 +36,21 @@ object Titanic {
 
     val inputlist = input.takeAsList( input.count().toInt ).asScala.toList
     val transformed = inputMassage(inputlist, 0)
+
+    //NOTE: If we wanted to convert to RDD from List, this is how
     val inputrdd = spark.sparkContext.parallelize(transformed,1)
-    inputrdd.take(4).foreach(println)
+    //inputrdd.take(4).foreach(println)
 
-    //everything below ripped from ml-pipeline tutorial
-    //check that for the full explaination
-
+    //create dataframe from massaged data
     val inputdf = spark.createDataFrame(transformed).toDF("label", "features")
+
+    //create logistic regression model with simple parameters 
     var lr = new LogisticRegression()
-    println(s"LogisticRegression params:\n ${lr.explainParams()}\n")
     lr.setMaxIter(10).setRegParam(0.01)
+
+    //fit new model using above params
     var model1 = lr.fit(inputdf)
-    println(s"Model 1 was fit using parameters: ${model1.parent.extractParamMap}")
-    val paramMap = ParamMap(lr.maxIter -> 20)
-        .put(lr.maxIter, 30).put(lr.regParam -> 0.1, lr.threshold -> 0.55)
-    val paramMap2 = ParamMap(lr.probabilityCol -> "myProbability")
-    val paramMapCombined = paramMap ++ paramMap2
-   
-    val model2 = lr.fit(inputdf, paramMapCombined)
-     
+
     //load test data
     val testinput = spark
       .read
@@ -65,34 +61,40 @@ object Titanic {
       .load("src/main/resources/test.csv")
     testinput.printSchema()
 
+    //testinput has no survived column, so pass '1' as param to indicate not to mess with this
     basicAnalysis(testinput, 1)
 
+    //massage test data like train
     val testinputlist = testinput.takeAsList( testinput.count().toInt ).asScala.toList
     val testtransformed = inputMassage(testinputlist, 1)
-    val testinputrdd = spark.sparkContext.parallelize(testtransformed,1)
-    testinputrdd.take(4).foreach(println)
 
+    //create test dataframe
     val testinputdf = spark.createDataFrame(testtransformed).toDF("label", "features")
 
-    //actual fitting
+    //actual fitting to earlier model
     val results = model1.transform(testinputdf)
-    results.select("features","probability","prediction").collect()
+
+    //There is a 'probability' column that exists but we don't care for this attempt
+    /*results.select("features","probability","prediction").collect()
     .foreach({ case Row(features: Vector, prob: Vector, prediction:Double) =>
        println(s"($features) -> prob=$prob, prediction=$prediction")
-       println( features.apply(0)) 
-    })
+    })*/
+
+    //collect results
     val testpids = results.select("features","prediction").collect()
+
+    //map into output format, casting as necessary
     val testresults = testpids.map{ x => 
       (x.apply(0).asInstanceOf[Vector].apply(0).floor.toInt, x.apply(1).asInstanceOf[Double].floor.toInt)
     } 
 
+    //create output dataframe and write
     val testresultsdf = spark.createDataFrame(testresults).toDF("label", "features")
-    testresultsdf.foreach(x => println(x) )
     testresultsdf.coalesce(1).write.format("csv").save("./results.csv")
 
   }
   def inputMassage(input: List[org.apache.spark.sql.Row], testdata: Int) = {
-    
+      //if testdata == 1, then we ignore survived column
       input.map { row =>
         val label = if( testdata == 0) row.getInt(row.fieldIndex("Survived")) else 0
         val featureCols = row.schema.fieldNames.filter( x => ( (x != "Survived") && (x != "Name") && (x != "Age") && (x != "Cabin") && (x != "Ticket") && (x != "Embarked") ) ) 
@@ -106,6 +108,7 @@ object Titanic {
 
   }
   def basicAnalysis(input: org.apache.spark.sql.DataFrame, testdata: Int) {
+    //if testdata == 1, then we ignore survived column
     if (testdata == 0)
     	input.filter( input("Survived") === "1").show()
 
